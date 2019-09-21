@@ -98,7 +98,7 @@ type ResponseObject struct {
 	// Id contains the client established request id or null.
 	Jsonrpc string       `json:"jsonrpc"`
 	Error   *ErrorObject `json:"error,omitempty"`
-	Result  interface{}  `json:"result,omitempty"`
+	Result  interface{}  `json:"result"`
 	Id      interface{}  `json:"id"`
 }
 
