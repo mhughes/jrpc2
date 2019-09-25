@@ -552,6 +552,7 @@ func (s *MuxServer) Start() {
 
 	if s.Server != nil {
 		s.Server.Handler = mux
+		s.Server.Addr = s.Host
 		log.Fatal(s.Server.ListenAndServe())
 	} else {
 		log.Fatal(http.ListenAndServe(s.Host, mux))
