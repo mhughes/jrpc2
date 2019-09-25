@@ -202,10 +202,11 @@ type Server struct {
 	// Route is the path to the rpc api.
 	// Methods contains the mapping of registered methods.
 	// Headers contains response headers.
-	Host    string
-	Route   string
-	Methods map[string]MethodWithContext
-	Headers map[string]string
+	Host       string
+	Route      string
+	Methods    map[string]MethodWithContext
+	Headers    map[string]string
+	HTTPServer *http.Server
 }
 
 // rpcHandler handles incoming rpc client requests.
@@ -532,21 +533,30 @@ type MuxServer struct {
 	Host     string
 	Headers  map[string]string
 	Handlers map[string]*MuxHandler
+	Server   *http.Server
 }
 
 // Start Starts binds all server rpcHandlers to their handler routes and
 // starts the http server.
 func (s *MuxServer) Start() {
+	mux := http.NewServeMux()
 	for route, handler := range s.Handlers {
 		s := &Server{
 			Methods: handler.Methods,
 			Headers: s.Headers,
 		}
-		http.HandleFunc(route, s.rpcHandler)
+		mux.HandleFunc(route, s.rpcHandler)
 		log.Println(fmt.Sprintf("adding handler at %s", route))
 	}
 	log.Println(fmt.Sprintf("Starting server on %s", s.Host))
-	log.Fatal(http.ListenAndServe(s.Host, nil))
+
+	if s.Server != nil {
+		s.Server.Handler = mux
+		log.Fatal(s.Server.ListenAndServe())
+	} else {
+		log.Fatal(http.ListenAndServe(s.Host, mux))
+	}
+
 }
 
 // AddHandler add the handler to the mux handlers.
@@ -555,6 +565,6 @@ func (s *MuxServer) AddHandler(route string, handler *MuxHandler) {
 }
 
 // NewMuxServer creates a new mux handler instance.
-func NewMuxServer(host string, headers map[string]string) *MuxServer {
-	return &MuxServer{host, headers, make(map[string]*MuxHandler)}
+func NewMuxServer(host string, headers map[string]string, s *http.Server) *MuxServer {
+	return &MuxServer{host, headers, make(map[string]*MuxHandler), s}
 }

@@ -127,7 +127,7 @@ func init() {
 	wg.Add(1)
 
 	go func() { // subtract method remote server
-		s := NewMuxServer(":31501", nil)
+		s := NewMuxServer(":31501", nil, nil)
 		h := NewMuxHandler()
 		h.Register("subtract", Method{Method: Subtract})
 		s.AddHandler("/api/v2/rpc", h)
